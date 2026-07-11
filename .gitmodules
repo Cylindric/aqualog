@@ -1,0 +1,6 @@
+[submodule "backend"]
+	path = backend
+	url = git@github.com:Cylindric/aqualog-backend.git
+[submodule "frontend"]
+	path = frontend
+	url = git@github.com:Cylindric/aqualog-frontend.git

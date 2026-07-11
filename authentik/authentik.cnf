@@ -1,0 +1,16 @@
+[ req ]
+distinguished_name = req_distinguished_name
+req_extensions = req_ext
+prompt = no
+
+[ req_distinguished_name ]
+CN = authentik.home.cylindric.net
+
+[ req_ext ]
+subjectAltName = @alt_names
+
+[ alt_names ]
+DNS.1 = authentik.home.cylindric.net
+DNS.2 = authentikserver
+DNS.3 = localhost
+IP.1 = 127.0.0.1
