@@ -1,0 +1,40 @@
+auth.cylindric.net {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}	
+	}
+	reverse_proxy authserver:9000
+
+    log {
+        output stderr
+    }
+}
+
+aqualog-auth.cylindric.net {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}	
+	}
+	reverse_proxy authserver:9000
+    log {
+        output stderr
+    }
+}
+
+aqualog-api.cylindric.net {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}	
+	}
+	reverse_proxy backend:8000
+    log {
+        output stderr
+    }
+}
+
+aqualog.cylindric.net {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}	
+	}
+	reverse_proxy frontend:8000
+    log {
+        output stderr
+    }
+}

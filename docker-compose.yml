@@ -1,0 +1,117 @@
+services:
+
+  authdb:
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${PG_DB}
+      POSTGRES_PASSWORD: ${PG_PASS}
+      POSTGRES_USER: ${PG_USER}
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test:
+        - CMD-SHELL
+        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+      timeout: 5s
+    image: docker.io/library/postgres:${POSTGRES_TAG}
+    restart: unless-stopped
+    volumes:
+      - authdb:/var/lib/postgresql/data
+
+  authserver:
+    command: server
+    depends_on:
+      authdb:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: authdb
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG}
+    ports:
+      - ${AUTH_PORT_HTTP}:9000
+      - ${AUTH_PORT_HTTPS}:9443
+    restart: unless-stopped
+    shm_size: 512mb
+    volumes:
+      - ./.data/data:/data
+      - ./.data/custom-templates:/templates
+
+  authworker:
+    command: worker
+    depends_on:
+      authdb:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      AUTHENTIK_POSTGRESQL__HOST: authdb
+      AUTHENTIK_POSTGRESQL__NAME: ${PG_DB}
+      AUTHENTIK_POSTGRESQL__PASSWORD: ${PG_PASS}
+      AUTHENTIK_POSTGRESQL__USER: ${PG_USER}
+      AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG}
+    restart: unless-stopped
+    shm_size: 512mb
+    user: root
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./.data/data:/data
+      - ./.data/certs:/certs
+      - ./.data/custom-templates:/templates
+
+  backend:
+    image: aqualog-backend:latest
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT_HTTP}:8000"
+    env_file:
+      - .env
+    environment:
+      AQUALOG_APP_ENV: "${AQUALOG_APP_ENV}"
+      AQUALOG_API_VERSION: "${AQUALOG_API_VERSION}"
+      AQUALOG_LOG_LEVEL: "${AQUALOG_LOG_LEVEL}"
+      AQUALOG_OAUTH_ISSUER_URL: "${AQUALOG_OAUTH_ISSUER_URL}"
+      AQUALOG_OAUTH_AUDIENCE: "${AQUALOG_OAUTH_CLIENT_ID}"
+      REQUESTS_CA_BUNDLE: "${REQUESTS_CA_BUNDLE}"
+    volumes:
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
+
+  frontend:
+    image: aqualog-frontend:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      VITE_OIDC_AUTHORITY: ${AQUALOG_OAUTH_ISSUER_URL}
+      VITE_OIDC_CLIENT_ID: ${AQUALOG_OAUTH_CLIENT_ID}
+    ports:
+      - "${FRONTEND_PORT_HTTP}:8000"
+
+  proxy:
+    image: caddybuilds/caddy-cloudflare:${CADDY_TAG}
+    restart: unless-stopped
+    cap_add:
+      - NET_ADMIN
+    env_file:
+      - .env
+    ports:
+      - "${PROXY_PORT_HTTP}:80"
+      - "${PROXY_PORT_HTTPS}:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+
+
+volumes:
+  authdb:
+    driver: local
+  caddy_data:
+  caddy_config:
