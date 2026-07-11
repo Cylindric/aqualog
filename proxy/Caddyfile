@@ -1,0 +1,40 @@
+auth.cylindric.net {
+	tls {
+		dns cloudflare secret_here
+	}
+	reverse_proxy localhost:8000
+
+    log {
+        output stderr
+    }
+}
+
+aqualog-auth.cylindric.net {
+	tls {
+		dns cloudflare secret_here
+	}
+	reverse_proxy localhost:8000
+    log {
+        output stderr
+    }
+}
+
+aqualog-api.cylindric.net {
+	tls {
+		dns cloudflare secret_here
+	}
+	reverse_proxy localhost:8001
+    log {
+        output stderr
+    }
+}
+
+aqualog.cylindric.net {
+	tls {
+		dns cloudflare secret_here
+	}
+	reverse_proxy localhost:8002
+    log {
+        output stderr
+    }
+}
