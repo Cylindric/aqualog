@@ -1,0 +1,74 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-db
+  namespace: aqualog
+spec:
+  type: ClusterIP
+  ports:
+  - port: 5432
+    targetPort: 5432
+    protocol: TCP
+    name: pg
+  selector:
+    app: auth-db
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: auth-db-pvc
+  namespace: aqualog
+  labels:
+    app: postgres
+spec:
+  storageClassName: do-block-storage
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-db
+  namespace: aqualog
+  labels:
+    app: auth-db
+spec:
+  replicas: 1
+  revisionHistoryLimit: 0
+  selector:
+    matchLabels:
+      app: auth-db
+  strategy:
+    rollingUpdate:
+      maxSurge: 0
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
+        app: auth-db
+    spec:
+      containers:
+      - name: auth-db
+        image: docker.io/library/postgres:16-alpine
+        imagePullPolicy: Always
+        env:
+        - name: POSTGRES_DB
+          value: "authentik"
+        - name: POSTGRES_PASSWORD
+          value: "..."
+        - name: POSTGRES_USER
+          value: "..."
+        volumeMounts:
+        - mountPath: "/var/lib/postgresql/data"
+          subPath: pgdata
+          name: auth-data-volume
+      restartPolicy: Always
+      volumes:
+        - name: auth-data-volume
+          persistentVolumeClaim:
+            claimName: auth-db-pvc

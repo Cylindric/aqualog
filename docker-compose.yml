@@ -84,7 +84,7 @@ services:
       - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
 
   frontend:
-    image: aqualog-frontend:latest
+    image: aqualog-frontend:${FRONTEND_TAG}
     restart: unless-stopped
     env_file:
       - .env
