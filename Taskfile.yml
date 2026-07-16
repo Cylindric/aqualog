@@ -2,7 +2,6 @@
 
 version: '3'
 
-
 tasks:
   default:
     desc: List all available tasks
@@ -10,3 +9,13 @@ tasks:
       - task --list
     silent: true
 
+  build-all:
+    desc: Build all docker images
+    cmds:
+      - cd backend && task build
+      - cd frontend && task build
+
+  up:
+    desc: Start all docker containers
+    cmds:
+      - docker-compose up
