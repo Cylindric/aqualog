@@ -77,6 +77,8 @@ services:
       - "${BACKEND_PORT_HTTP}:8000"
     env_file:
       - .env
+    environment:
+      - AQUALOG_OAUTH_ISSUER_URL=http://authserver:9000/application/o/aqualog/
     volumes:
       - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
     depends_on:
@@ -94,20 +96,20 @@ services:
       - ./frontend/dist:/app/frontend
       - ./frontend/backend:/app/backend
 
-  proxy:
-    image: caddybuilds/caddy-cloudflare:${CADDY_TAG}
-    restart: unless-stopped
-    cap_add:
-      - NET_ADMIN
-    env_file:
-      - .env
-    ports:
-      - "${PROXY_PORT_HTTP}:80"
-      - "${PROXY_PORT_HTTPS}:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
+  # proxy:
+  #   image: caddybuilds/caddy-cloudflare:${CADDY_TAG}
+  #   restart: unless-stopped
+  #   cap_add:
+  #     - NET_ADMIN
+  #   env_file:
+  #     - .env
+  #   ports:
+  #     - "${PROXY_PORT_HTTP}:80"
+  #     - "${PROXY_PORT_HTTPS}:443"
+  #   volumes:
+  #     - ./Caddyfile:/etc/caddy/Caddyfile:ro
+  #     - caddy_data:/data
+  #     - caddy_config:/config
 
 
 volumes:

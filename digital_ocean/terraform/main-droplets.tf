@@ -20,19 +20,23 @@ resource "digitalocean_tag" "this" {
   name = "aqualog"
 }
 
+data "digitalocean_vpc" "this" {
+  name   = "default-lon1"
+}
+
 resource "digitalocean_droplet_autoscale" "this" {
   name = "aqualog"
 
   config {
     min_instances             = 1
     max_instances             = 1
-    target_cpu_utilization    = 0.75
-    target_memory_utilization = 0.75
+    target_cpu_utilization    = 0.95
+    target_memory_utilization = 0.95
     cooldown_minutes          = 5
   }
 
   droplet_template {
-    size               = "s-1vcpu-512mb-10gb"
+    size               = "s-2vcpu-2gb"
     region             = data.digitalocean_region.this.slug
     image              = "ubuntu-26-04-x64"
     tags               = [digitalocean_tag.this.id]
@@ -42,6 +46,7 @@ resource "digitalocean_droplet_autoscale" "this" {
     user_data          = "\n#cloud-config\nruncmd:\n- apt-get update\n- apt-get install -y stress-ng\n"
     public_networking  = true
     project_id         = digitalocean_project.this.id
+    vpc_uuid           = data.digitalocean_vpc.this.id
   }
 }
 
