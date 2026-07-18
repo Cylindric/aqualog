@@ -1,0 +1,17 @@
+digitalocean_api_token: ""
+
+# AUTH SERVER SETTINGS
+# echo "aqualog_authentik_password: $(openssl rand -base64 36 | tr -d '\n')"
+aqualog_authentik_password: ""
+
+# echo "aqualog_authentik_secret_key: $(openssl rand -base64 60 | tr -d '\n')"
+aqualog_authentik_secret_key: ""
+
+# COMMON SETTINGS
+aqualog_oauth_client_id: ""
+
+# echo "aqualog_db_password: \"$(openssl rand -base64 36)\""
+aqualog_db_password: ""
+
+# PROXY SETTINGS
+aqualog_cf_api_token: ""

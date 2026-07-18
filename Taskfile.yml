@@ -15,6 +15,12 @@ tasks:
       - cd backend && task build
       - cd frontend && task build
 
+  publish-all:
+    desc: Publish all docker images
+    cmds:
+      - cd backend && task publish
+      - cd frontend && task publish
+
   up:
     desc: Start all docker containers
     cmds:

@@ -7,6 +7,7 @@
     * Upload all required assets
         
         * background1.png
+        * favicon.png
         * logo-login.png
 
 1. Applications > Providers > New Provider > OAuth2
@@ -17,7 +18,7 @@
         * Client Type: public
         * Client ID: Note this and update `.env` with it.
         * Grant Types: Authorization Code, Refresh token
-        * Redirect URLs: https://aqualog.cylindric.net/auth/callback
+        * Redirect URIs: https://www.aqualog.cylindric.net/auth/callback
         * Logout URI: Leave blank
         * Signing Key: authentik Self-signed Certificate
     * Advanced Flow Settings
@@ -46,19 +47,20 @@
     * Backchannel Providers: blank
     * Policy engine mode: ANY
     * UI settings:
-        * Launch URL: https://aqualog.cylindric.net
+        * Launch URL: https://www.aqualog.cylindric.net
         * Open in new tab: OFF
         * Hide from Application Dashboard: OFF
-        * Icon: blank
+        * Icon: logo-login.png
         * Publisher: blank
         * Description: blank
 
 1. System -> Brands -> New Brand
 
-    * Domain: aqualog-auth.cylindric.net
+    * Domain: auth.aqualog.cylindric.net
     * Branding settings
         * Title: AquaLog
         * Logo: logo-login.png
+        * Favicon: favicon.png
         * Default flow background: background1.png
         * Custom CSS: blank
     * External User Settings

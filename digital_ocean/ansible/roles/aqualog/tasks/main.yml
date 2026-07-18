@@ -1,0 +1,48 @@
+---
+- name: Create required directories for Aqualog
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: 1000
+    group: root
+    mode: '0755'
+  loop:
+    - /opt/aqualog
+    - /opt/aqualog/data/authserver/data
+    - /opt/aqualog/data/authserver/custom-templates
+    - /opt/aqualog/data/authserver/certs
+
+- name: Upload the docker-compose file
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /opt/aqualog/docker-compose.yml
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Restart Aqualog Services
+
+- name: Create the env file
+  ansible.builtin.template:
+    src: env.j2
+    dest: /opt/aqualog/.env
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Restart Aqualog Services
+
+- name: Create the proxy configuration file
+  ansible.builtin.template:
+    src: nginx.conf.j2
+    dest: /opt/aqualog/nginx.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify:
+    - Restart Proxy
+
+- name: create and start docker compose services
+  community.docker.docker_compose_v2:
+    project_src: /opt/aqualog
+    state: present

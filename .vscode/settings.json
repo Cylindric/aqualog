@@ -1,5 +1,10 @@
 {
     "chat.tools.terminal.autoApprove": {
         "docker run": true
+    },
+    "files.associations": {
+        "env.j2": "dotenv",
+        "*yml.j2": "yaml",
+        "docker-compose.yml.j2": "dockercompose"
     }
 }

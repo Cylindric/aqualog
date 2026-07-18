@@ -1,0 +1,18 @@
+---
+plugin: digitalocean.cloud.droplets
+token: "{{ (lookup('ansible.builtin.file', 'vars.live.yml') | from_yaml).digitalocean_api_token }}"
+attributes:
+  - id
+  - status
+  - tags  # Note: Will be available as 'do_tags' to avoid Ansible reserved name
+  - networks
+compose:
+  ansible_host: networks.v4 | selectattr("type", "eq", "public") | map(attribute="ip_address") | first
+  class: size.description | lower
+  distribution: image.distribution | lower
+  ansible_user: "'root'"
+  do_public_ip: networks.v4 | selectattr('type', 'eq', 'public') | map(attribute='ip_address') | first
+keyed_groups:
+  - key: do_tags  # Use 'do_tags' instead of 'tags' to avoid Ansible reserved variable name
+    prefix: tag
+    separator: "_"

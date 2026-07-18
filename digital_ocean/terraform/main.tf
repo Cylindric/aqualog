@@ -8,70 +8,50 @@ resource "digitalocean_project" "this" {
   purpose     = "Web Application"
   environment = "Staging"
 
+    
   resources = [
-    digitalocean_kubernetes_cluster.this.urn,
+    # digitalocean_kubernetes_cluster.this.id
+    digitalocean_domain.this.urn,
+    digitalocean_loadbalancer.public.urn
   ]
 }
 
-# Create a new container registry
-resource "digitalocean_container_registry" "this" {
-  name                   = "aqualog"
-  subscription_tier_slug = "starter"
+data "cloudflare_zone" "this" {
+  filter = {
+    name = "cylindric.net"
+  }
 }
 
-resource "digitalocean_container_registry_docker_credentials" "this" {
-  registry_name = digitalocean_container_registry.this.name
+data "cloudflare_account_api_token_permission_groups_list" "zone_dns_settings_read" {
+  account_id = data.cloudflare_zone.this.account.id
+  name       = "Zone DNS Settings Read"
 }
 
-# Create a new Kubernetes cluster
-resource "digitalocean_kubernetes_cluster" "this" {
-  name                 = "aqualog"
-  region               = data.digitalocean_region.this.slug
-  version              = "1.36.0-do.2"
-  ha                   = false
-  registry_integration = true
+data "cloudflare_account_api_token_permission_groups_list" "dns_write" {
+  account_id = data.cloudflare_zone.this.account.id
+  name       = "DNS Write"
+}
 
-  node_pool {
-    name       = "worker-pool"
-    size       = "s-1vcpu-2gb"
-    node_count = 1
-    labels     = {}
-    max_nodes  = 0
-    min_nodes  = 0
-    tags       = []
-  }
+data "cloudflare_account_api_token_permission_groups_list" "dns_read" {
+  account_id = data.cloudflare_zone.this.account.id
+  name       = "DNS Read"
+}
 
-  tags = []
+resource "cloudflare_account_token" "this" {
+  account_id = data.cloudflare_zone.this.account.id
+  name       = "cylindric-dns-config"
 
-  amd_gpu_device_plugin {
-    enabled = false
-  }
+  policies = [{
+    effect = "allow"
+    permission_groups = [
+      { id = data.cloudflare_account_api_token_permission_groups_list.zone_dns_settings_read.result[0].id },
+      { id = data.cloudflare_account_api_token_permission_groups_list.dns_write.result[0].id },
+      { id = data.cloudflare_account_api_token_permission_groups_list.dns_read.result[0].id }
+    ]
+    resources = jsonencode({
+      "com.cloudflare.api.account.zone.${data.cloudflare_zone.this.id}" = "*"
+    })
+  }]
 
-  amd_gpu_device_metrics_exporter_plugin {
-    enabled = false
-  }
-
-  coredns_autoscaler {
-    enabled = true
-  }
-
-  maintenance_policy {
-    day        = "any"
-    start_time = "13:00"
-  }
-
-  nvidia_gpu_device_plugin {
-    enabled = false
-  }
-  rdma_shared_device_plugin {
-    enabled = false
-  }
-
-  routing_agent {
-    enabled = false
-  }
-
-  depends_on = [
-    digitalocean_container_registry.this,
-  ]
+  expires_on = timeadd(timestamp(), "10m")
 }
