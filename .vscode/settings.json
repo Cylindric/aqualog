@@ -6,5 +6,7 @@
         "env.j2": "dotenv",
         "*yml.j2": "yaml",
         "docker-compose.yml.j2": "dockercompose"
-    }
+    },
+    "python-envs.defaultEnvManager": "ms-python.python:poetry",
+    "python-envs.defaultPackageManager": "ms-python.python:poetry"
 }
