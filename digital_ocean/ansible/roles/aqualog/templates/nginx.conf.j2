@@ -53,3 +53,9 @@ server {
         proxy_set_header X-Forwarded-Proto $scheme;
     }
 }
+
+server {
+    listen 80;
+    server_name _;
+    return 200 'OK';
+}

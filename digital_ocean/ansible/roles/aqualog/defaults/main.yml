@@ -32,3 +32,5 @@ aqualog_db_password: ""
 
 # PROXY SETTINGS
 aqualog_cf_api_token: ""
+
+aqualog_bootstrap: false

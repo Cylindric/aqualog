@@ -1,7 +1,8 @@
-.env
-.data
+__pycache__
 .auto.tfvars
+.data
+.env
 .terraform
-terraform.tfstate.*
-terraform.tfstate
 .venv
+terraform.tfstate
+terraform.tfstate.*

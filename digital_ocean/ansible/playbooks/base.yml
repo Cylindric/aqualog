@@ -1,8 +1,7 @@
 ---
 - hosts: tag_aqualog
-  become: true
+  # become: true
   
   roles:
     - base
     - docker
-    - aqualog

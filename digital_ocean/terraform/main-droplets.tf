@@ -21,32 +21,25 @@ resource "digitalocean_tag" "this" {
 }
 
 data "digitalocean_vpc" "this" {
-  name   = "default-lon1"
+  name = "default-lon1"
 }
 
-resource "digitalocean_droplet_autoscale" "this" {
-  name = "aqualog"
-
-  config {
-    min_instances             = 1
-    max_instances             = 1
-    target_cpu_utilization    = 0.95
-    target_memory_utilization = 0.95
-    cooldown_minutes          = 5
-  }
-
-  droplet_template {
-    size               = "s-2vcpu-2gb"
-    region             = data.digitalocean_region.this.slug
-    image              = "ubuntu-26-04-x64"
-    tags               = [digitalocean_tag.this.id]
-    ssh_keys           = [digitalocean_ssh_key.this.id]
-    with_droplet_agent = true
-    ipv6               = false
-    user_data          = "\n#cloud-config\nruncmd:\n- apt-get update\n- apt-get install -y stress-ng\n"
-    public_networking  = true
-    project_id         = digitalocean_project.this.id
-    vpc_uuid           = data.digitalocean_vpc.this.id
+resource "digitalocean_droplet" "this" {
+  name              = "aqualog"
+  size              = "s-2vcpu-2gb"
+  region            = data.digitalocean_region.this.slug
+  image             = "ubuntu-26-04-x64"
+  tags              = [digitalocean_tag.this.id]
+  ssh_keys          = [digitalocean_ssh_key.this.id]
+  droplet_agent     = true
+  monitoring        = true
+  ipv6              = false
+  public_networking = true
+  vpc_uuid          = data.digitalocean_vpc.this.id
+  backups           = true
+  backup_policy {
+    plan = "daily"
+    hour = 8
   }
 }
 
@@ -64,49 +57,65 @@ resource "digitalocean_loadbalancer" "public" {
     certificate_name = digitalocean_certificate.this.name
   }
 
-  # direct forward for authentik
-  /*
-  forwarding_rule {
-    entry_port     = 8000
-    entry_protocol = "http"
-
-    target_port     = 8000
-    target_protocol = "http"
-  }
-
-  # direct forward for backend
-  forwarding_rule {
-    entry_port     = 8001
-    entry_protocol = "http"
-
-    target_port     = 8001
-    target_protocol = "http"
-  }
-
-  # direct forward for frontend
-  forwarding_rule {
-    entry_port     = 8002
-    entry_protocol = "http"
-
-    target_port     = 8002
-    target_protocol = "http"
-  }
-  */
   healthcheck {
-    port     = 22
-    protocol = "tcp"
+    port     = 80
+    protocol = "http"
+    path     = "/"
   }
 
   droplet_tag = digitalocean_tag.this.id
 }
 
-data "digitalocean_droplets" "this" {
-  filter {
-    key    = "tags"
-    values = ["aqualog"]
+variable "cylcorp_ip_address" {
+  description = "Cylcorp IP address"
+  type        = string
+  sensitive   = true
+}
+
+resource "digitalocean_firewall" "this" {
+  name = "aqualog-fw"
+  tags = [digitalocean_tag.this.id]
+
+  inbound_rule {
+    protocol   = "tcp"
+    port_range = "22"
+    source_addresses = [
+      "0.0.0.0/0", # until we have an alternative deploy mechanism in the GitHub Actions workflow, we need to allow all IPs to connect to port 22
+    var.cylcorp_ip_address]
+  }
+
+  inbound_rule {
+    protocol   = "tcp"
+    port_range = "80"
+    source_addresses = [
+      "10.106.0.3/20", # DigitalOcean Load Balancer IP address range
+      digitalocean_loadbalancer.public.ip
+    ]
+  }
+
+  outbound_rule {
+    protocol   = "tcp"
+    port_range = "80"
+    destination_addresses = [
+      "0.0.0.0/0"
+    ]
+  }
+  outbound_rule {
+    protocol   = "udp"
+    port_range = "53"
+    destination_addresses = [
+      "0.0.0.0/0"
+    ]
+  }
+  outbound_rule {
+    protocol   = "tcp"
+    port_range = "443"
+    destination_addresses = [
+      "0.0.0.0/0"
+    ]
   }
 }
 
 output "droplets" {
-  value = data.digitalocean_droplets.this.droplets[*].ipv4_address
+  value = digitalocean_droplet.this.ipv4_address
 }

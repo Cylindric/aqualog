@@ -8,9 +8,8 @@ resource "digitalocean_project" "this" {
   purpose     = "Web Application"
   environment = "Staging"
 
-    
   resources = [
-    # digitalocean_kubernetes_cluster.this.id
+    digitalocean_droplet.this.urn,
     digitalocean_domain.this.urn,
     digitalocean_loadbalancer.public.urn
   ]

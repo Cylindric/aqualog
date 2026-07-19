@@ -42,7 +42,18 @@
   notify:
     - Restart Proxy
 
-- name: create and start docker compose services
+- name: create and start auth services
+  when: aqualog_bootstrap == true
+  community.docker.docker_compose_v2:
+    project_src: /opt/aqualog
+    state: present
+    services:
+      - authdb
+      - authserver
+      - authworker
+
+- name: create and start aqualog services
+  when: aqualog_bootstrap == false
   community.docker.docker_compose_v2:
     project_src: /opt/aqualog
     state: present

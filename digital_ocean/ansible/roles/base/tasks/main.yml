@@ -1,15 +1,13 @@
 ---
-# Install aptitude so Ansible can manage packages more reliably
-- name: Install aptitude
+- name: Aptitude for Ansible
   ansible.builtin.apt:
     name: aptitude
-    state: latest
+    state: present
     update_cache: true
 
-# Install packages required before Docker can be added
 - name: Install required system packages
   ansible.builtin.apt:
-    pkg:
+    name:
       - apt-transport-https
       - ca-certificates
       - curl
@@ -17,13 +15,10 @@
       - python3-pip
       - virtualenv
       - python3-setuptools
-    state: latest
-    update_cache: true
 
 - name: Update OS packages
   ansible.builtin.apt:
     upgrade: dist
-    update_cache: true
 
 # Reboot if required after package updates
 - name: Check if reboot required
@@ -35,3 +30,22 @@
 - name: Reboot if required
   ansible.builtin.reboot:
   when: reboot_required_file.stat.exists == true
+
+# See if the do-agent service is installed
+- name: Check if do-agent service is installed
+  ansible.builtin.systemd:
+    name: do-agent
+    state: started
+  register: do_agent_service
+  ignore_errors: true
+
+# If the do-agent service is not installed, install it
+- name: Install the Droplet Metrics Agent
+  ansible.builtin.shell:
+    cmd: curl -sSL https://repos.insights.digitalocean.com/install.sh | bash
+  when: do_agent_service is failed
+
+- name: Ensure the do-agent service is running
+  ansible.builtin.systemd:
+    name: do-agent
+    state: started
