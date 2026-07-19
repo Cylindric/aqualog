@@ -1,4 +1,7 @@
 ---
+# Set this to an SSH public key to deploy to the server. If you don't want to deploy a public key, set this to false.
+aqualog_deploy_public_key: false
+
 aqualog_proxy_internal_port: 80 # This is the port listening inside the container, not the port exposed to the host machine.
 aqualog_proxy_exposed_port: 80
 

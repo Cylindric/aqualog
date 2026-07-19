@@ -1,3 +1,6 @@
+# Set this to an SSH public key to deploy to the server. If you don't want to deploy a public key, set this to false.
+aqualog_deploy_public_key: false
+
 digitalocean_api_token: ""
 
 # AUTH SERVER SETTINGS

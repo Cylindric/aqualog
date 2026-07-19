@@ -57,3 +57,19 @@
   community.docker.docker_compose_v2:
     project_src: /opt/aqualog
     state: present
+
+- name: Deploy the service restart script
+  ansible.builtin.template:
+    src: service-restart.sh
+    dest: /opt/aqualog/service-restart.sh
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Deploy the authorised key for the aqualog user
+  ansible.posix.authorized_key:
+    user: root
+    state: present
+    key: "{{ aqualog_deploy_public_key }}"
+    manage_dir: yes
+  when: aqualog_deploy_public_key != false
