@@ -1,5 +1,11 @@
 services:
 
+  mailproxy:
+    image: aqualog-mail-proxy:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+
   authdb:
     image: docker.io/library/postgres:${POSTGRES_TAG}
     env_file:
@@ -14,7 +20,7 @@ services:
       start_period: 20s
       test:
         - CMD-SHELL
-        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER} # pg_isready -d authentik -U authentik
       timeout: 5s
     restart: unless-stopped
     volumes:
@@ -30,7 +36,7 @@ services:
     image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG}
     ports:
       - ${AUTH_PORT_HTTP}:9000
-      - ${AUTH_PORT_HTTPS}:9443
+      # - ${AUTH_PORT_HTTPS}:9443
     restart: unless-stopped
     shm_size: 512mb
     volumes:
