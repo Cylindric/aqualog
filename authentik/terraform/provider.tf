@@ -7,13 +7,19 @@ terraform {
   }
 }
 
+variable "authentik_url" {
+  type        = string
+  description = "The URL of the authentik instance"
+}
+
+variable "authentik_token" {
+  type        = string
+  description = "The API token for the authentik instance"
+}
+
 provider "authentik" {
-  url   = "http://127.0.0.1:9000"
-  token = "ruqqgUUwubnKOIrR5nfWMSf0ba4qk4vMqX6PwoXxiGiRp2JpY1TD29EQZ6dR"
+  url   = var.authentik_url
+  token = var.authentik_token
   # Optionally set insecure to ignore TLS Certificates
   # insecure = true
-  # Optionally add extra headers
-  # headers {
-  #   X-my-header = "foo"
-  # }
 }

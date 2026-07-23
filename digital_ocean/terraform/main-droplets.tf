@@ -114,6 +114,20 @@ resource "digitalocean_firewall" "this" {
       "0.0.0.0/0"
     ]
   }
+  outbound_rule {
+    protocol   = "tcp"
+    port_range = "587"
+    destination_addresses = [
+      "0.0.0.0/0"
+    ]
+  }
+  outbound_rule {
+    protocol   = "tcp"
+    port_range = "2525"
+    destination_addresses = [
+      "0.0.0.0/0"
+    ]
+  }
 }
 
 output "droplets" {
