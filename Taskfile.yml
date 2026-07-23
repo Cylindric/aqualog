@@ -25,3 +25,21 @@ tasks:
     desc: Start all docker containers
     cmds:
       - docker-compose up
+
+  gource:
+    desc: Generate a gource video of the project
+    cmds:
+      - gource --output-custom-log .data/backend.txt backend
+      - sed -i -r "s#(.+)\|#\1|/backend#" .data/backend.txt
+      - gource --output-custom-log .data/frontend.txt frontend
+      - sed -i -r "s#(.+)\|#\1|/frontend#" .data/frontend.txt
+      - cat .data/backend.txt .data/frontend.txt | sort -n > .data/combined.txt
+      - sed -i -r "s#Mark Hanford#Cylindric#" .data/combined.txt
+      - |
+        gource \
+          --file-filter .*/openspec/changes/archive \
+          --file-filter .*/.vscode \
+          --file-filter .*/.agents \
+          --file-filter .*/.github \
+          .data/combined.txt
+      # - gource --seconds-per-day 0.1 --auto-skip-seconds 1 --hide filenames,mouse,progress,filenames --output-ppm-stream - | ffmpeg -y -r 60 -f image2pipe -vcodec ppm -i - -vcodec libx264 -preset ultrafast -pix_fmt yuv420p gource.mp4
