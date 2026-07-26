@@ -1,6 +1,25 @@
 # README
 
-## Authentik Setup
+## New Dev Environment Setup
+
+```bash
+task init
+task build-all
+task up
+```
+
+To configure Authentik:
+
+```bash
+task init-terraform
+cd authentik/terraform
+
+# Edit .auto.tfvars and put in a valud Authentik token
+
+terraform plan
+```
+
+## Authentik Manual Setup Guide
 
 1. Customization > Files
 

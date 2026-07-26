@@ -1,6 +1,8 @@
 # yaml-language-server: $schema=https://taskfile.dev/schema.json
-
 version: '3'
+
+dotenv:
+  - .env
 
 tasks:
   default:
@@ -8,6 +10,29 @@ tasks:
     cmds:
       - task --list
     silent: true
+
+  init:
+    desc: Initialize the build environment
+    cmds:
+      - mkdir -p ./.build
+      - mkdir -p ./.build/authentik/data/media/public/aqualog
+      - cp assets/*.png ./.build/authentik/data/media/public/aqualog
+      - mkdir -p ./.build/authentik/certs
+      - mkdir -p ./.build/authentik/custom-templates
+      - if [ ! -f ./.env ]; then cp .env.example .env; fi
+      - sed -i "s|authdb_password_here|$(openssl rand -base64 36)|" .env
+      - sed -i "s|backenddb_password_here|$(openssl rand -base64 36)|" .env
+      - sed -i "s|authentik_secret_key_here|$(openssl rand -base64 60 | tr -d '\n')|" .env
+      - cd backend && task init
+      - cd frontend && task init
+
+  init-terraform:
+    desc: Initialize the Terraform environment
+    dir: authentik/terraform
+    cmds:
+      - echo "authentik_url = \"http://localhost:8000\"" > .auto.tfvars
+      - echo "authentik_token = \"your_token\"" >> .auto.tfvars
+      - terraform init
 
   build-all:
     desc: Build all docker images

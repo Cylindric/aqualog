@@ -2,7 +2,7 @@ services:
 
   mailproxy:
     image: aqualog-mail-proxy:latest
-    restart: unless-stopped
+    restart: no
     env_file:
       - .env
 
@@ -22,7 +22,7 @@ services:
         - CMD-SHELL
         - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER} # pg_isready -d authentik -U authentik
       timeout: 5s
-    restart: unless-stopped
+    restart: no
     volumes:
       - authdb:/var/lib/postgresql/data
 
@@ -36,29 +36,31 @@ services:
     image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG}
     ports:
       - ${AUTH_PORT_HTTP}:9000
-      # - ${AUTH_PORT_HTTPS}:9443
-    restart: unless-stopped
+    restart: no
     shm_size: 512mb
     volumes:
-      - ./.data/data:/data
-      - ./.data/custom-templates:/templates
+      - ./.build/authentik/data:/data
+      - ./.build/authentik/certs:/certs
+      - ./.build/authentik/custom-templates:/templates
 
   authworker:
     command: worker
     depends_on:
       authdb:
         condition: service_healthy
+      authserver:
+        condition: service_healthy
     env_file:
       - .env
     image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG}
-    restart: unless-stopped
+    restart: no
     shm_size: 512mb
     user: root
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./.data/data:/data
-      - ./.data/certs:/certs
-      - ./.data/custom-templates:/templates
+      - ./.build/authentik/data:/data
+      - ./.build/authentik/certs:/certs
+      - ./.build/authentik/custom-templates:/templates
 
   backenddb:
     image: docker.io/library/postgres:16-alpine
@@ -78,13 +80,17 @@ services:
 
   backend:
     image: aqualog-backend:${BACKEND_TAG}
-    restart: unless-stopped
+    restart: no
     ports:
       - "${BACKEND_PORT_HTTP}:8000"
     env_file:
       - .env
     environment:
-      - AQUALOG_OAUTH_ISSUER_URL=http://authserver:9000/application/o/aqualog/
+      # Tokens are validated against AQUALOG_OAUTH_ISSUER_URL (from .env), which must
+      # match the "iss" claim Authentik stamps into tokens based on the externally-
+      # reachable URL clients use. The backend container can't reach Authentik at
+      # that host:port, so discovery/JWKS fetching uses the internal service name.
+      - AQUALOG_OAUTH_DISCOVERY_URL=http://authserver:9000/application/o/aqualog/
     volumes:
       - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
     depends_on:
@@ -93,7 +99,7 @@ services:
 
   frontend:
     image: aqualog-frontend:${FRONTEND_TAG}
-    restart: unless-stopped
+    restart: no
     env_file:
       - .env
     ports:
@@ -104,7 +110,7 @@ services:
 
   # proxy:
   #   image: caddybuilds/caddy-cloudflare:${CADDY_TAG}
-  #   restart: unless-stopped
+  #   restart: no
   #   cap_add:
   #     - NET_ADMIN
   #   env_file:

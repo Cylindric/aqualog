@@ -1,9 +1,12 @@
-variable "google_cert_name" {
-  type = string
+variable "authentik_url" {
+  type        = string
+  description = "The URL of the authentik instance"
+  default     = "http://localhost:8000"
 }
 
-variable "google_sso_url" {
-  type = string
+variable "authentik_token" {
+  type        = string
+  description = "The API token for the authentik instance"
 }
 
 variable "aqualog_auth_callback_url" {
@@ -23,26 +26,40 @@ variable "aqualog_app_url" {
 
 variable "aqualog_client_id" {
   type    = string
+  default = "aqualog"
 }
 
 variable "mail_send_host" {
-  type = string
+  type    = string
+  default = ""
 }
+
 variable "mail_send_port" {
-  type = number
+  type    = number
+  default = 25
 }
+
 variable "mail_send_username" {
-  type = string
+  type    = string
+  default = ""
 }
+
 variable "mail_send_password" {
-  type = string
+  type    = string
+  default = ""
 }
+
 variable "mail_send_from_address" {
-  type = string
+  type    = string
+  default = ""
 }
+
 variable "mail_send_use_tls" {
-  type = bool
+  type    = bool
+  default = false
 }
+
 variable "mail_send_use_ssl" {
-  type = bool
+  type    = bool
+  default = false
 }

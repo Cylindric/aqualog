@@ -1,4 +1,11 @@
 # # Based on this: https://docs.goauthentik.io/users-sources/sources/social-logins/google/workspace/
+#variable "google_cert_name" {
+#  type = string
+#}
+
+#variable "google_sso_url" {
+#  type = string
+#}
 # data "authentik_certificate_key_pair" "google" {
 #   name = var.google_cert_name
 # }
