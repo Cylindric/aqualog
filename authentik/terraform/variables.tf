@@ -19,6 +19,16 @@ variable "aqualog_test_token_callback_url" {
   default = "http://127.0.0.1:8400/callback"
 }
 
+variable "aqualog_app_title" {
+  type    = string
+  default = "AquaLog"
+}
+
+variable "aqualog_app_domain" {
+  type    = string
+  default = "localhost:8002"
+}
+
 variable "aqualog_app_url" {
   type    = string
   default = "http://localhost:8002"

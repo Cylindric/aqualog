@@ -1,4 +1,13 @@
 terraform {
+  required_version = "1.15.8"
+
+  cloud {
+    organization = "MyAquariumLog"
+    workspaces {
+      name = "authentik"
+    }
+  }
+
   required_providers {
     authentik = {
       source  = "goauthentik/authentik"
