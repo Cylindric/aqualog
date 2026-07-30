@@ -39,6 +39,26 @@ data "digitalocean_droplet" "aqualog" {
 #   }
 # }
 
+resource "digitalocean_droplet" "swarm" {
+  count             = 2
+  name              = "aqualog-${count.index}"
+  size              = "s-1vcpu-1gb"
+  region            = data.digitalocean_region.this.slug
+  image             = "ubuntu-26-04-x64"
+  tags              = [digitalocean_tag.aqualog.id]
+  ssh_keys          = [digitalocean_ssh_key.aqualog.id]
+  droplet_agent     = true
+  monitoring        = true
+  ipv6              = false
+  public_networking = true
+  vpc_uuid          = data.digitalocean_vpc.this.id
+  backups           = true
+  backup_policy {
+    plan = "daily"
+    hour = 8
+  }
+}
+
 resource "digitalocean_reserved_ip" "aqualog" {
   droplet_id = data.digitalocean_droplet.aqualog.id
   region     = data.digitalocean_droplet.aqualog.region
@@ -126,4 +146,31 @@ resource "digitalocean_firewall" "aqualog" {
       "0.0.0.0/0"
     ]
   }
+
+  dynamic inbound_rule {
+    for_each = local.bidirectional_rules
+    content {
+      protocol = inbound_rule.value["protocol"]
+      port_range = inbound_rule.value["port_range"]
+      source_tags = inbound_rule.value["tags"]
+    }
+  }
+  dynamic outbound_rule {
+    for_each = local.bidirectional_rules
+    content {
+      protocol = outbound_rule.value["protocol"]
+      port_range = outbound_rule.value["port_range"]
+      destination_tags = outbound_rule.value["tags"]
+    }
+  }
+}
+
+locals {
+  bidirectional_rules = [
+    { protocol = "tcp", port_range = 22, tags = ["aqualog"] },
+    { protocol = "tcp", port_range = 2377, tags = ["aqualog"] },
+    { protocol = "tcp", port_range = 7946, tags = ["aqualog"] },
+    { protocol = "udp", port_range = 7946, tags = ["aqualog"] },
+    { protocol = "udp", port_range = 4789, tags = ["aqualog"] },
+  ]
 }

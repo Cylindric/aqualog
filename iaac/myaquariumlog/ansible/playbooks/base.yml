@@ -1,0 +1,7 @@
+---
+- hosts: swarm # tag_aqualog
+  # become: true
+  
+  roles:
+    - base
+    - docker

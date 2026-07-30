@@ -1,0 +1,51 @@
+---
+- name: Aptitude for Ansible
+  ansible.builtin.apt:
+    name: aptitude
+    state: present
+    update_cache: true
+
+- name: Install required system packages
+  ansible.builtin.apt:
+    name:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+      - python3-pip
+      - virtualenv
+      - python3-setuptools
+
+- name: Update OS packages
+  ansible.builtin.apt:
+    upgrade: dist
+
+# Reboot if required after package updates
+- name: Check if reboot required
+  ansible.builtin.stat:
+    path: /var/run/reboot-required
+  register: reboot_required_file
+  changed_when: false
+
+- name: Reboot if required
+  ansible.builtin.reboot:
+  when: reboot_required_file.stat.exists == true
+
+# See if the do-agent service is installed
+- name: Check if do-agent service is installed
+  ansible.builtin.systemd:
+    name: do-agent
+    state: started
+  register: do_agent_service
+  ignore_errors: true
+
+# If the do-agent service is not installed, install it
+- name: Install the Droplet Metrics Agent
+  ansible.builtin.shell:
+    cmd: curl -sSL https://repos.insights.digitalocean.com/install.sh | bash
+  when: do_agent_service is failed
+
+- name: Ensure the do-agent service is running
+  ansible.builtin.systemd:
+    name: do-agent
+    state: started

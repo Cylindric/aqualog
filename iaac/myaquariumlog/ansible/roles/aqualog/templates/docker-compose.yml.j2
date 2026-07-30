@@ -1,0 +1,107 @@
+services:
+
+  authdb:
+    image: docker.io/library/postgres:${POSTGRES_TAG}
+    env_file:
+      - .env
+    environment:
+      POSTGRES_DB: ${AUTHENTIK_POSTGRESQL__NAME}
+      POSTGRES_PASSWORD: ${AUTHENTIK_POSTGRESQL__PASSWORD}
+      POSTGRES_USER: ${AUTHENTIK_POSTGRESQL__USER}
+    healthcheck:
+      interval: 30s
+      retries: 5
+      start_period: 20s
+      test:
+        - CMD-SHELL
+        - pg_isready -d $${POSTGRES_DB} -U $${POSTGRES_USER}
+      timeout: 5s
+    restart: unless-stopped
+    volumes:
+      - authdb:/var/lib/postgresql/data
+
+  authserver:
+    command: server
+    depends_on:
+      authdb:
+        condition: service_healthy
+    env_file:
+      - .env
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG}
+    ports:
+      - "{{ aqualog_auth_exposed_port }}:{{ aqualog_auth_internal_port }}"
+      - "{{ aqualog_auth_exposed_port_https }}:{{ aqualog_auth_internal_port_https }}"
+    restart: unless-stopped
+    shm_size: 512mb
+    volumes:
+      - ./data/authserver/data:/data
+      - ./data/authserver/custom-templates:/templates
+
+  authworker:
+    command: worker
+    depends_on:
+      authdb:
+        condition: service_healthy
+    env_file:
+      - .env
+    image: ghcr.io/goauthentik/server:${AUTHENTIK_TAG}
+    restart: unless-stopped
+    shm_size: 512mb
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./data/authserver/data:/data
+      - ./data/authserver/certs:/certs
+      - ./data/authserver/custom-templates:/templates
+
+  backenddb:
+    image: docker.io/library/postgres:16-alpine
+    environment:
+      POSTGRES_DB: "${AQUALOG_DB_NAME}"
+      POSTGRES_USER: "${AQUALOG_DB_USER}"
+      POSTGRES_PASSWORD: "${AQUALOG_DB_PASSWORD}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${AQUALOG_DB_USER} -d ${AQUALOG_DB_NAME}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - backenddb-data:/var/lib/postgresql/data
+
+  backend:
+    image: "{{ aqualog_backend_image }}"
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "{{ aqualog_backend_exposed_port }}:{{ aqualog_backend_internal_port }}"
+    volumes:
+      - /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt
+    depends_on:
+      backenddb:
+        condition: service_healthy
+
+  frontend:
+    image: "{{ aqualog_frontend_image }}"
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "{{ aqualog_frontend_exposed_port }}:{{ aqualog_frontend_internal_port }}"
+
+  proxy:
+    image: nginx:latest
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "{{ aqualog_proxy_exposed_port }}:{{ aqualog_proxy_internal_port }}"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/proxy.conf:ro
+
+volumes:
+  authdb:
+    driver: local
+  caddy_data:
+  caddy_config:
+  backenddb-data:
+    driver: local

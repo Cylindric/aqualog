@@ -1,0 +1,19 @@
+---
+all:
+  vars:
+    ansible_ssh_user: root
+swarm:
+  hosts:
+
+    # aqualog:
+    #   ansible_host: 209.97.191.227
+    #   swarm_ip: 10.106.0.5
+    #  
+
+    aqualog-0:
+      ansible_host: 142.93.34.32
+      swarm_ip: 10.106.0.2
+
+    aqualog-1:
+      ansible_host: 142.93.43.34
+      swarm_ip: 10.106.0.4

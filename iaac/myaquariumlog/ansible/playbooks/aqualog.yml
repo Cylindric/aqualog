@@ -1,0 +1,6 @@
+---
+- hosts: tag_aqualog
+  become: true
+  
+  roles:
+    - aqualog
