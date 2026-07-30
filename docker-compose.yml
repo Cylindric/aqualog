@@ -86,6 +86,7 @@ services:
     env_file:
       - .env
     environment:
+      - AQUALOG_DB_HOST=backenddb
       # Tokens are validated against AQUALOG_OAUTH_ISSUER_URL (from .env), which must
       # match the "iss" claim Authentik stamps into tokens based on the externally-
       # reachable URL clients use. The backend container can't reach Authentik at
