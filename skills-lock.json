@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "authentik-email-templates": {
+      "source": "octopize/avatar-deployment",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/authentik-email-templates/SKILL.md",
+      "computedHash": "d857bd0aee056ed9d3b41c795e9657aa74314ab2caa6ae3af32f1c830a307738"
+    }
+  }
+}
