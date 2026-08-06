@@ -1,6 +1,7 @@
 authentik_url = "http://localhost:8000"
-authentik_token = "IaaUDWuvzsxuNcbahTnkoVFPvM6ks4MYl06Kr3VwynwlX2lxWSPnSXrHRnU6"
+authentik_token = "rSRkkMvGLpe3mrfK6WF5tU7UGox9bt0fHpY8hgkHayj5l0MoKjMxyTs4dvqz"
 
+aqualog_brand_domain = "localhost:8000"
 aqualog_app_title = "MyAquariumLog"
 aqualog_app_domain = "localhost:8000"
 aqualog_auth_callback_url = "http://localhost:8002/auth/callback"

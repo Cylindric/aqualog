@@ -24,7 +24,12 @@ data "authentik_certificate_key_pair" "authentik" {
 }
 
 resource "authentik_group" "users" {
-  name         = "${var.aqualog_app_title} User Group"
+  name         = "AquaLogUsers"
+  is_superuser = false
+}
+
+resource "authentik_group" "admins" {
+  name         = "AquaLogAdmins"
   is_superuser = false
 }
 
@@ -79,6 +84,21 @@ resource "authentik_flow_stage_binding" "custom_authentication_flow" {
   target = authentik_flow.aqualog-authentication-flow.uuid
 }
 
+resource "authentik_property_mapping_provider_scope" "add_group_to_jwt" {
+  name       = "aqualog-group"
+  scope_name = "aqualog-group"
+  expression = <<EOF
+return {
+  "groups": [group.name for group in request.user.ak_groups.all()],
+}
+EOF
+}
+
+locals {
+  ids = [for mapping in data.authentik_property_mapping_provider_scope.scope : mapping.id]
+  provider_scopes = concat(local.ids, [authentik_property_mapping_provider_scope.add_group_to_jwt.id])
+}
+
 resource "authentik_provider_oauth2" "backend" {
   name                = var.aqualog_app_title
   client_id           = var.aqualog_client_id
@@ -87,7 +107,7 @@ resource "authentik_provider_oauth2" "backend" {
   authorization_flow  = data.authentik_flow.default_authorization_flow.id
   authentication_flow = authentik_flow.aqualog-authentication-flow.uuid
   invalidation_flow   = data.authentik_flow.default_invalidation_flow.id
-  property_mappings   = [for mapping in data.authentik_property_mapping_provider_scope.scope : mapping.id]
+  property_mappings   = local.provider_scopes
   signing_key         = data.authentik_certificate_key_pair.authentik.id
   allowed_redirect_uris = [
     {
@@ -109,7 +129,7 @@ resource "authentik_application" "backend" {
   name              = var.aqualog_app_title
   slug              = "aqualog"
   group             = var.aqualog_app_title
-  meta_icon         = "favicon.png"
+  meta_icon         = "aqualog/favicon.png"
   meta_publisher    = var.aqualog_app_title
   protocol_provider = authentik_provider_oauth2.backend.id
   meta_launch_url   = var.aqualog_app_url
@@ -197,12 +217,3 @@ return True
 EOT
 }
 
-resource "authentik_property_mapping_provider_scope" "add_group_to_jwt" {
-  name       = "aqualog-group"
-  scope_name = "aqualog-group"
-  expression = <<EOF
-return {
-  "groups": [group.name for group in request.user.ak_groups.all()],
-}
-EOF
-}

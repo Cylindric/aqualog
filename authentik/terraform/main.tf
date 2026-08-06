@@ -15,4 +15,5 @@ resource "authentik_brand" "aqualog" {
   branding_default_flow_background = "aqualog/background1.png"
   branding_favicon                 = "aqualog/favicon.png"
   branding_logo                    = "aqualog/logo-login.png"
+  flow_authentication              = authentik_flow.aqualog-authentication-flow.uuid
 }
