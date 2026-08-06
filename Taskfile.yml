@@ -19,12 +19,19 @@ tasks:
       - cp assets/*.png ./.build/authentik/data/media/public/aqualog
       - mkdir -p ./.build/authentik/certs
       - mkdir -p ./.build/authentik/custom-templates
+      - task: authentik-sync-templates
       - if [ ! -f ./.env ]; then cp .env.example .env; fi
       - sed -i "s|authdb_password_here|$(openssl rand -base64 36)|" .env
       - sed -i "s|backenddb_password_here|$(openssl rand -base64 36)|" .env
       - sed -i "s|authentik_secret_key_here|$(openssl rand -base64 60 | tr -d '\n')|" .env
       - cd backend && task init
       - cd frontend && task init
+
+  authentik-sync-templates:
+    desc: Copy Authentik custom email templates into the build dir (re-run after editing a template)
+    cmds:
+      - mkdir -p ./.build/authentik/custom-templates
+      - cp -r authentik/custom-templates/. ./.build/authentik/custom-templates/
 
   init-terraform:
     desc: Initialize the Terraform environment

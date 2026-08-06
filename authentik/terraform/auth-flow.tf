@@ -23,27 +23,29 @@ data "authentik_certificate_key_pair" "authentik" {
   name = "authentik Self-signed Certificate"
 }
 
-
-# terraform import 'authentik_group.users' '4321da1f-0428-472c-8fbf-62525b724739'
 resource "authentik_group" "users" {
-  name         = "${var.aqualog_app_title} User Group"
+  name         = "AquaLogUsers"
   is_superuser = false
 }
 
-# terraform import 'authentik_flow.aqualog-authentication-flow' 'aqualog-authentication-flow'
+resource "authentik_group" "admins" {
+  name         = "AquaLogAdmins"
+  is_superuser = false
+}
+
 resource "authentik_flow" "aqualog-authentication-flow" {
   name               = "aqualog-authentication-flow"
   title              = "${var.aqualog_app_title} Login"
   slug               = "aqualog-authentication-flow"
   designation        = "authentication"
   authentication     = "none"
-  layout             = "sidebar_left"
+  layout             = "stacked"
+  background         = "aqualog/background1.png"
   policy_engine_mode = "any"
   compatibility_mode = true
   denied_action      = "message_continue"
 }
 
-# terraform import 'authentik_flow.aqualog-enrollment-flow' 'aqualog-enrollment-flow'
 resource "authentik_flow" "aqualog-enrollment-flow" {
   name               = "aqualog-enrollment-flow"
   title              = "${var.aqualog_app_title} Registration"
@@ -51,9 +53,10 @@ resource "authentik_flow" "aqualog-enrollment-flow" {
   policy_engine_mode = "any"
   designation        = "enrollment"
   compatibility_mode = true
+  layout             = "stacked"
+  background         = "aqualog/background1.png"
 }
 
-# terraform import 'authentik_stage_identification.authentication_identification' 'fc924a2c-39df-444b-b8e3-9920bc77f8f5'
 resource "authentik_stage_identification" "authentication_identification" {
   name                      = "aqualog-authentication-identification"
   user_fields               = ["email"]
@@ -81,7 +84,21 @@ resource "authentik_flow_stage_binding" "custom_authentication_flow" {
   target = authentik_flow.aqualog-authentication-flow.uuid
 }
 
-# terraform import 'authentik_provider_oauth2.backend' 4
+resource "authentik_property_mapping_provider_scope" "add_group_to_jwt" {
+  name       = "aqualog-group"
+  scope_name = "aqualog-group"
+  expression = <<EOF
+return {
+  "groups": [group.name for group in request.user.ak_groups.all()],
+}
+EOF
+}
+
+locals {
+  ids = [for mapping in data.authentik_property_mapping_provider_scope.scope : mapping.id]
+  provider_scopes = concat(local.ids, [authentik_property_mapping_provider_scope.add_group_to_jwt.id])
+}
+
 resource "authentik_provider_oauth2" "backend" {
   name                = var.aqualog_app_title
   client_id           = var.aqualog_client_id
@@ -90,7 +107,7 @@ resource "authentik_provider_oauth2" "backend" {
   authorization_flow  = data.authentik_flow.default_authorization_flow.id
   authentication_flow = authentik_flow.aqualog-authentication-flow.uuid
   invalidation_flow   = data.authentik_flow.default_invalidation_flow.id
-  property_mappings   = [for mapping in data.authentik_property_mapping_provider_scope.scope : mapping.id]
+  property_mappings   = local.provider_scopes
   signing_key         = data.authentik_certificate_key_pair.authentik.id
   allowed_redirect_uris = [
     {
@@ -108,30 +125,27 @@ resource "authentik_provider_oauth2" "backend" {
   depends_on = [authentik_flow_stage_binding.custom_authentication_flow]
 }
 
-# terraform import 'authentik_application.backend' 'aqualog'
 resource "authentik_application" "backend" {
   name              = var.aqualog_app_title
   slug              = "aqualog"
   group             = var.aqualog_app_title
-  meta_icon         = "favicon.png"
+  meta_icon         = "aqualog/favicon.png"
   meta_publisher    = var.aqualog_app_title
   protocol_provider = authentik_provider_oauth2.backend.id
   meta_launch_url   = var.aqualog_app_url
 }
 
-# terraform import 'authentik_policy_binding.aqualog-access' '33607e61-0a27-4155-a5cc-a1e0c9710ad7'
 resource "authentik_policy_binding" "aqualog-access" {
   target = authentik_application.backend.uuid
   group  = authentik_group.users.id
   order  = 0
 }
 
-# terraform import 'authentik_stage_email.email_account_confirmation' '631b12ff-e631-479b-8df6-7f3749fe23ca'
 resource "authentik_stage_email" "email_account_confirmation" {
   name                     = "aqualog-email-account-confirmation"
   activate_user_on_success = true
   subject                  = "${var.aqualog_app_title} Account Confirmation"
-  template                 = "email/account_confirmation.html"
+  template                 = "email/aqualog_account_confirmation.html"
   use_global_settings      = true
 }
 
@@ -160,20 +174,18 @@ resource "authentik_stage_prompt_field" "enrollment_field" {
   }
 
   field_key = each.value.field_key
-  name      = each.key
+  name      = "aqualog ${each.key}"
   label     = each.value.label
   type      = each.value.type
   order     = each.value.order
 }
 
-# terraform import authentik_stage_prompt.custom_enrollment_prompt 1053df80-c025-4f3a-ac7f-9cb997af15ba
 resource "authentik_stage_prompt" "custom_enrollment_prompt" {
   name                = "aqualog-enrollment-form"
   fields              = [for field in authentik_stage_prompt_field.enrollment_field : field.id]
   validation_policies = [authentik_policy_expression.set_username_to_email.id]
 }
 
-# terraform import authentik_stage_user_write.enrollment_user_write a501b14e-98c6-45c8-a279-eab4adc0e380
 resource "authentik_stage_user_write" "enrollment_user_write" {
   name                     = "aqualog-enrollment-user-write"
   create_users_as_inactive = true
@@ -197,7 +209,6 @@ resource "authentik_flow_stage_binding" "aqualog-enrollment-flow" {
   target = authentik_flow.aqualog-enrollment-flow.uuid
 }
 
-# terraform import 'authentik_policy_expression.set_username_to_email' 'b6c0026f-46df-4ae7-9c53-be6a11feaa43'
 resource "authentik_policy_expression" "set_username_to_email" {
   name       = "Set username to email"
   expression = <<EOT
@@ -205,3 +216,4 @@ request.context["prompt_data"]["username"] = request.context["prompt_data"]["ema
 return True
 EOT
 }
+

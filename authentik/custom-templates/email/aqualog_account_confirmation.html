@@ -1,0 +1,125 @@
+{# AquaLog account confirmation email. Rendered by the "aqualog-email-account-confirmation" #}
+{# email stage in the aqualog-enrollment-flow (see authentik/terraform/auth-flow.tf).       #}
+{# Authentik context: {{ url }} (confirmation link), {{ expires }} (token expiry, optional). #}
+{% load humanize %}
+<!DOCTYPE html>
+<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="color-scheme" content="light dark">
+<meta name="supported-color-schemes" content="light dark">
+<title>Confirm your account</title>
+<!--[if mso]>
+<noscript>
+<xml>
+<o:OfficeDocumentSettings>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+</noscript>
+<![endif]-->
+<style>
+  body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+  table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+  img { -ms-interpolation-mode: bicubic; border: 0; height: auto; line-height: 100%; outline: none; text-decoration: none; }
+  body { margin: 0; padding: 0; width: 100% !important; height: 100% !important; }
+  a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; }
+  @media screen and (max-width: 600px) {
+    .email-wrapper { width: 100% !important; }
+    .fluid-padding { padding-left: 24px !important; padding-right: 24px !important; }
+  }
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#0e0f1a;">
+  <!-- preheader -->
+  <div style="display:none;max-height:0;overflow:hidden;mso-hide:all;font-size:1px;line-height:1px;color:#161826;">
+    Confirm your email address to finish setting up your account.
+  </div>
+
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#0e0f1a;">
+    <tr>
+      <td align="center" style="padding:48px 16px;">
+
+        <table role="presentation" class="email-wrapper" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:600px;background-color:#161826;border-radius:8px;border:1px solid #2a2d3f;">
+
+          <!-- logo -->
+          <tr>
+            <td align="center" class="fluid-padding" style="padding:48px 40px 32px 40px;">
+              <img src="https://www.myaquariumlog.com/logo-banner.png" alt="MyAquariumLog" width="445" height="185" style="display:block;border:0;outline:none;text-decoration:none;">
+            </td>
+          </tr>
+
+          <!-- divider mark -->
+          <tr>
+            <td align="center" style="padding:0 40px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr><td style="width:32px;height:2px;line-height:2px;font-size:2px;background-color:#9184d9;border-radius:1px;">&nbsp;</td></tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- heading -->
+          <tr>
+            <td align="center" class="fluid-padding" style="padding:24px 40px 8px 40px;font-family:'Inter',Arial,Helvetica,sans-serif;font-size:22px;line-height:30px;font-weight:500;color:#e9e9ed;">
+              Confirm your account
+            </td>
+          </tr>
+
+          <!-- body copy -->
+          <tr>
+            <td align="center" class="fluid-padding" style="padding:0 40px 32px 40px;font-family:'Inter',Arial,Helvetica,sans-serif;font-size:15px;line-height:24px;color:#a6a8ba;">
+              Confirm your email address to finish setting up your account.
+              {% if expires %}This link expires {{ expires|naturaltime }}.{% endif %}
+            </td>
+          </tr>
+
+          <!-- button -->
+          <tr>
+            <td align="center" class="fluid-padding" style="padding:0 40px 40px 40px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td align="center" bgcolor="#161826" style="border-radius:8px;border:1px solid #9184d9;mso-padding-alt:0;">
+                    <a href="{{ url }}" target="_blank" style="display:block;padding:14px 32px;font-family:'Inter',Arial,Helvetica,sans-serif;font-size:15px;font-weight:500;color:#9184d9;text-decoration:none;border-radius:8px;mso-line-height-rule:exactly;line-height:20px;">
+                      Confirm Account
+                    </a>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- fallback link -->
+          <tr>
+            <td align="center" class="fluid-padding" style="padding:0 40px 40px 40px;font-family:'Inter',Arial,Helvetica,sans-serif;font-size:13px;line-height:20px;color:#6f7288;">
+              If the button doesn't work, copy and paste this link into your browser:<br>
+              <a href="{{ url }}" target="_blank" style="color:#9184d9;text-decoration:underline;word-break:break-all;">{{ url }}</a>
+            </td>
+          </tr>
+
+          <!-- divider -->
+          <tr>
+            <td style="padding:0 40px;">
+              <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr><td style="border-top:1px solid #2a2d3f;font-size:1px;line-height:1px;">&nbsp;</td></tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- footer -->
+          <tr>
+            <td align="center" class="fluid-padding" style="padding:24px 40px 40px 40px;font-family:'Inter',Arial,Helvetica,sans-serif;font-size:12px;line-height:18px;color:#6f7288;">
+              You're receiving this email because an account was created with this address.<br>
+              If this wasn't you, you can safely ignore this message.<br><br>
+              AquaLog
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
